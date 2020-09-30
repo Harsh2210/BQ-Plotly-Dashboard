@@ -10,9 +10,13 @@ import dash_html_components as html
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 import base64
+from flask import Flask
+import os
 
 external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
 
+server = Flask(__name__)
+server.secret_key = os.environ.get('secret_key', 'secret')
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 ##############################
