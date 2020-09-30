@@ -10,8 +10,16 @@ import dash_html_components as html
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 import base64
+import flask
 from flask import Flask
 import os
+from flask import send_file
+import io
+import csv
+import urllib
+from six.moves.urllib.parse import quote
+from six import StringIO
+
 
 external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
 
@@ -46,6 +54,12 @@ app.layout = html.Div(
         html.Div([
             html.Img(src='data:image/png;base64,{}'.format(encoded_image.decode()))
         ]),
+        html.Div(
+                [
+                    html.A("Export Data", href="/download_excel/",id='my-link')
+                ],
+                style={'display': 'flex', 'align-items': 'flex-start','justify-content': 'left'}
+            ),
         html.H2("Interative Output Format: "),
         html.Div([
             html.Div([
@@ -126,11 +140,38 @@ app.layout = html.Div(
     Output('datatable-interactivity', 'data'),
     [Input('my-checklist', 'value') ] )
 def display_table(val):
-    print(val)
+    #print(val)
     dff = reshaped_df[reshaped_df['Item Type'].isin(val)]
     dff = dff.iloc[:,1:8]
-    print(dff)
+    #print(dff)
     return dff.to_dict('records')
+
+@app.callback(Output('my-link', 'href'), [Input('my-checklist', 'value')])
+def update_download_link(filter_value):
+    print(filter_value)
+    dff = reshaped_df[reshaped_df['Item Type'].isin(filter_value)]
+    dff = dff.iloc[:,1:8]
+    csv_string = dff.to_csv(index=False, encoding='utf-8')
+    csv_string = "data:text/csv;charset=utf-8,%EF%BB%BF" + quote(csv_string)
+    return csv_string
+
+# def update_link(value):
+#     return '/dash/urlToDownload?value={}'.format(value)
+
+# @app.server.route('/dash/urlToDownload') 
+# def download_csv():
+#     value = flask.request.args.get('value')
+#     # create a dynamic csv or file here using `StringIO` 
+#     # (instead of writing to the file system)
+#     strIO = StringIO()
+#     strIO.write(value) 
+#     strIO.seek(0)    
+#     return send_file(strIO,
+#                      mimetype='text/csv',
+#                      attachment_filename='downloadFile.csv',
+#                      as_attachment=True)
+
+
 
 
 # @app.callback(
